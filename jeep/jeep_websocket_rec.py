@@ -4,7 +4,8 @@ import uselect as select # type: ignore
 from time import sleep, ticks_ms # type: ignore
 import gc
 import ubinascii # type: ignore
-
+import ujson # type: ignore
+import machine # type: ignore
 from jeep_action import JeepAction  # 提前导入避免循环引用问题
 jeep_action = JeepAction()
 
@@ -124,19 +125,23 @@ def ws_receive(data):
 
 def handle_command(message):
     """处理客户端命令"""
-    cmd = message.strip().lower()
     try:
-        cmd_type = cmd.split(":")[0]
-        cmd_detail = cmd.split(":")[1]
+        cmd_json = ujson.loads(message)
+        cmd_type = cmd_json["cmd_type"]
         if cmd_type == "control":
-            jeep_action._message2action(cmd_detail)
-            return "OK"
+            jeep_action._message2action(cmd_json["cmd_detail"])
+            return ujson.dumps({"cmd_type":"control", "return_detail": "success"})
         elif cmd_type == "wifi":
-            return "OK"
+            wificonfig = {"ssid": cmd_json["ssid"], "password": cmd_json["password"]}
+            with open("wificonfig.json", 'w') as f:
+                ujson.dump(wificonfig, f)
+            sleep(3)
+            machine.reset()
+            return ujson.dumps({"cmd_type":"wifi","return_detail": "success"})
         elif cmd_type == "wifistatus":
-            return "OK"
-    except:
-        return "ERROR"
+            return ujson.dumps({"cmd_type":"wifistatus","ap_ip":str(ap.ifconfig()[0]),"sta_ip":str(wlan_sta.ifconfig()[0])})
+    except Exception as e:
+        return ujson.dumps({"cmd_type":"error","return_detail": str(e)})
 def start_websocket_server():
     """启动WebSocket服务器"""
     apmodel()
@@ -182,7 +187,7 @@ def start_websocket_server():
                                 if ws_handshake(sock, clients[sock]):
                                     client_id = client_ids[sock]
                                     print(f"🔗 客户端 #{client_id} 握手成功")
-                                    ws_send(sock, f"连接成功! 你是客户端 #{client_id}")
+                                    ws_send(sock, ujson.dumps({"cmd_type":"websocket","connect_status":f"websocket连接成功! 你是客户端 #{client_id}"}))
                                     clients[sock] = b''  # 清空缓冲区
                                 else:
                                     # 发送普通HTTP响应

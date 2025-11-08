@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>Jeep车控制页面</title>
+    <!-- 增强 viewport 设置，禁止用户缩放 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            touch-action: manipulation;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 800px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        button {
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: bold;
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            background-color:rgba(255, 255, 255, 0.2);
+            border: 0px;
+            color: white;
+            font-size: 1rem;
+
+        } 
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+        
+        .control-panel {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            width: 100%;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .ip-selector {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 25px;
+            width: 100%;
+        }
+
+        .panel-title {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 25px;
+            width: 100%;
+        }
+        
+        #target_ip {
+            padding: 12px 15px;
+            border-radius: 10px;
+            border: none;
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            font-size: 1rem;
+            width: 100%;
+        }
+        
+        #target_ip option {
+            background: #1a2a6c;
+            color: white;
+        }
+        
+        
+        .control-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+        
+        .direction-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 10px;
+            margin: 0 auto;
+            width: 250px;
+            height: 250px;
+        }
+        
+        .control-btn {
+            margin: 0px;
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 1.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .control-btn:active {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(0.95);
+        }
+        
+        #btn-up-left {
+            grid-column: 1;
+            grid-row: 1;
+        }
+        
+        #btn-up {
+            grid-column: 2;
+            grid-row: 1;
+        }
+        
+        #btn-up-right {
+            grid-column: 3;
+            grid-row: 1;
+        }
+        
+        #btn-left {
+            grid-column: 1;
+            grid-row: 2;
+        }
+        
+        #btn-center {
+            grid-column: 2;
+            grid-row: 2;
+            background: rgba(255, 215, 0, 0.3);
+        }
+        
+        #btn-right {
+            grid-column: 3;
+            grid-row: 2;
+        }
+        
+        #btn-down-left {
+            grid-column: 1;
+            grid-row: 3;
+        }
+        
+        #btn-down {
+            grid-column: 2;
+            grid-row: 3;
+        }
+        
+        #btn-down-right {
+            grid-column: 3;
+            grid-row: 3;
+        }
+        
+        .command-display {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 25px;
+            font-family: monospace;
+            word-break: break-all;
+            width: 100%;
+            text-align: center;
+        }
+        
+        /* 添加连接状态显示 */
+        .connection-status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .connected {
+            background: rgba(0, 255, 0, 0.3);
+        }
+        
+        .disconnected {
+            background: rgba(255, 0, 0, 0.3);
+        }
+        
+      
+        .connect-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .tips {
+            font-size: 12px;
+        }
+
+        #current-command {
+            position: fixed; /* 固定定位 */
+            bottom: 0;       /* 固定在底部 */
+            left: 0;         /* 从左侧开始 */
+            width: 100%;     /* 宽度占满屏幕 */
+            background: rgba(255, 255, 255, 0.3); /* 背景色（可选） */
+            padding: 10px;    /* 内边距（可选） */
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1); /* 阴影（可选） */
+            z-index: 1000;    /* 确保在最上层 */
+            text-align: center; /* 文字居中（可选） */
+        }
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .direction-buttons {
+                width: 200px;
+                height: 200px;
+            }
+            
+            .control-panel {
+                padding: 15px;
+            }
+        }
+        .gyro-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        
+        .gyro-visualization {
+            position: relative;
+            width: 250px;
+            height: 250px;
+            margin: 20px auto;
+        }
+        
+        .gyro-circle {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .gyro-pointer {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: #ff4d4d;
+            border-radius: 50%;
+            transition: transform 0.1s ease-out;
+            box-shadow: 0 0 15px #ff4d4d;
+            /* 初始位置在圆心 */
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .gyro-axis {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        .axis {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 10px;
+            flex: 1;
+            margin: 0 5px;
+        }
+        
+        .axis-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        #gyro-permission-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 1.2rem;
+            padding: 12px 24px;
+            cursor: pointer;
+            margin: 15px auto;
+            display: block;
+            transition: all 0.3s;
+        }
+        
+        #gyro-permission-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        #gyro-cancel-permission-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 1.2rem;
+            padding: 12px 24px;
+            cursor: pointer;
+            margin: 15px auto;
+            display: block;
+            transition: all 0.3s;
+        }
+        
+        #gyro-permission-btn:hover,#gyro-cancel-permission-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            max-width: 300px;
+        }
+        label {
+            margin-bottom: 5px;
+            font-size: 1em;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            font-size: 1em;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Jeep车控制页面</h1>
+        </header>
+       
+        <div class="control-panel">
+            <div class="ip-selector">
+                <label for="target_ip">控制设备的IP:</label>
+                <input type="text" id="target_ip" value="192.168.4.1">
+                <p class="tips">在HTML文件名中增加IP，可修改IP的默认值。可通过下面的「获取网络信息」按钮获取局域网IP。</p>
+            </div>
+            
+            <!-- 连接按钮和连接状态 -->
+            <div id="disconnected-status" class="connection-status disconnected">
+                连接设备
+            </div>
+            <div id="connected-status" class="connection-status connected" style="display: none;">
+                断开设备
+            </div>                 
+
+        </div>
+
+        <div class="control-panel">
+            <div class="panel-title"> 
+                <label>按钮控制区域</label>
+            </div>
+            <div class="control-container">
+                <div class="direction-buttons">
+                    <button id="btn-up-left" class="control-btn" onpointerdown="handleAction({'cmd_type':'control','cmd_detail':'top|left|-2|-2|-2|-2|'})" onpointerup="handleAction({'cmd_type':'control','cmd_detail':'stop|stop|-2|-2|-2|-2|'})">↖️</button>
+                    <button id="btn-up" class="control-btn" onpointerdown="handleAction({'cmd_type':'control','cmd_detail':'top|stop|-2|-2|-2|-2|'})" onpointerup="handleAction({'cmd_type':'control','cmd_detail':'stop|stop|-2|-2|-2|-2|'})">⬆️</button>
+                    <button id="btn-up-right" class="control-btn" onpointerdown="handleAction({'cmd_type':'control','cmd_detail':'top|right|-2|-2|-2|-2|'})" onpointerup="handleAction({'cmd_type':'control','cmd_detail':'stop|stop|-2|-2|-2|-2|'})">↗️</button>
+                    <button id="btn-left" class="control-btn" onpointerdown="handleAction({'cmd_type':'control','cmd_detail':'stop|left|-2|-2|-2|-2|'})" onpointerup="handleAction({'cmd_type':'control','cmd_detail':'stop|stop|-2|-2|-2|-2|'})">⬅️</button>
+                    <button id="btn-center" class="control-btn" onpointerdown="handleAction({'cmd_type':'control','cmd_detail':'stop|stop|-2|-1|-2|-2|'})" onpointerup="handleAction({'cmd_type':'control','cmd_detail':'stop|stop|-2|-2|-2|-2|'})">✨️</button>
+                    <button id="btn-right" class="control-btn" onpointerdown="handleAction({'cmd_type':'control','cmd_detail':'stop|right|-2|-2|-2|-2|'})" onpointerup="handleAction({'cmd_type':'control','cmd_detail':'stop|stop|-2|-2|-2|-2|'})">➡️</button>
+                    <button id="btn-down-left" class="control-btn" onpointerdown="handleAction({'cmd_type':'control','cmd_detail':'bottom|left|-2|-2|-2|-2|'})" onpointerup="handleAction({'cmd_type':'control','cmd_detail':'stop|stop|-2|-2|-2|-2|'})">↙️</button>
+                    <button id="btn-down" class="control-btn" onpointerdown="handleAction({'cmd_type':'control','cmd_detail':'bottom|stop|-2|-2|-2|-2|'})" onpointerup="handleAction({'cmd_type':'control','cmd_detail':'stop|stop|-2|-2|-2|-2|'})">⬇️</button>
+                    <button id="btn-down-right" class="control-btn" onpointerdown="handleAction({'cmd_type':'control','cmd_detail':'bottom|right|-2|-2|-2|-2|'})" onpointerup="handleAction({'cmd_type':'control','cmd_detail':'stop|stop|-2|-2|-2|-2|'})">↘️</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="control-panel">
+            <div class="panel-title"> 
+                <label>体感控制区域</label>
+            </div>
+
+            <div class="gyro-container">
+                <button id="gyro-permission-btn">启用陀螺仪</button>
+                <button id="gyro-cancel-permission-btn" style="display: none;">关闭陀螺仪</button>
+                <div class="gyro-visualization">
+                    <div class="gyro-circle"></div>
+                    <div class="gyro-pointer" id="gyro-pointer"></div>
+                </div>
+                 <div class="gyro-axis">
+                    <div class="axis">
+                        <div>X轴(前后)</div>
+                        <div class="axis-value" id="x-value">0.00</div>
+                    </div>
+                    <div class="axis">
+                        <div>Y轴(左右)</div>
+                        <div class="axis-value" id="y-value">0.00</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="control-panel">
+            <div class="panel-title"> 
+                <label>配网区域</label>
+            </div>
+            <div class="wifi-container">
+                <div class="form-group">
+                    <label for="ssid">SSID:</label>
+                    <input type="text" id="ssid">
+                </div>
+                <div class="form-group">
+                    <label for="password">PSD:</label>
+                    <input type="text" id="password">
+                </div>
+                <button onclick="connectwifi()" id="connectwifi">保存并重启设备</button>
+                <button onclick="wifistatus()" id="wifistatus">获取网络信息</button>
+                <p id="network_information"></p>
+            </div>            
+        </div>
+        <!-- <p id="current-command" class="tips">当前指令：stop|stop|-2|-2|-2|-2|</p> -->
+    </div>
+
+    <script>
+        // 函数：从文件名中提取IP地址并设置为默认值
+        function setDefaultIPFromFilename() {
+            const filename = window.location.pathname.split('/').pop() || document.title;
+            const ipMatch = filename.match(/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/);
+            if (ipMatch && ipMatch[1]) {
+                document.getElementById('target_ip').value = ipMatch[1];
+            }
+        }
+        // 页面加载完成后执行：设置默认IP的函数
+        window.addEventListener('DOMContentLoaded', setDefaultIPFromFilename);
+
+        // 初始化WebSocket连接相关变量
+        let ws = null;
+        let isConnected = false;
+        
+        // 函数：更新页面上的WebSocket连接状态
+        function updateConnectionStatus(status) {
+            const disconnectedstatusElement = document.getElementById('disconnected-status');
+            const connectedstatusElement = document.getElementById('connected-status');
+            if (status) {
+                disconnectedstatusElement.style.display = 'none';
+                connectedstatusElement.style.display = 'block';
+            } else {
+                disconnectedstatusElement.style.display = 'block';
+                connectedstatusElement.style.display = 'none';
+            }
+        }
+        
+        // 函数：连接WebSocket服务，如果已连接则断开
+        function connectWebSocket() {
+            if (ws) {
+                ws.close();
+                ws = null;
+                isConnected = false;
+                updateConnectionStatus(false);
+                return;
+            }
+            const ip = document.getElementById('target_ip').value;
+            if (!ip) {
+                alert('请输入IP地址');
+                return;
+            }
+            try {
+                ws = new WebSocket(`ws://${ip}:8080`);
+                ws.onopen = function() {
+                    console.log('WebSocket连接已建立');
+                    isConnected = true;
+                    updateConnectionStatus(true);
+                };               
+                ws.onmessage = function(event) {
+                    //console.log('收到消息:', event.data);
+                    handleMessage(event.data);
+                };               
+                ws.onclose = function() {
+                    console.log('WebSocket连接已关闭');
+                    ws = null;
+                    isConnected = false;
+                    updateConnectionStatus(false);
+                };               
+                ws.onerror = function(error) {
+                    console.error('WebSocket错误:', error);
+                    ws = null;
+                    isConnected = false;
+                    updateConnectionStatus(false);
+                    alert('连接失败');
+                };               
+            } catch (e) {
+                console.error('WebSocket连接失败:', e);
+                alert('连接失败: ' + e.message);
+            }
+        }
+        
+        // 函数：根据消息类型显示在不同位置
+        function handleMessage(message) {
+            console.log('收到消息:', message);
+            message_json = JSON.parse(message);
+            // 判断是否为WiFi状态信息
+            cmd_type = message_json.cmd_type;
+            if (cmd_type=="wifistatus") {
+                ap_ip = message_json.ap_ip;
+                sta_ip = message_json.sta_ip;
+                document.getElementById('network_information').innerHTML = "AP IP: " + ap_ip + "<br>" + "STA IP: " + sta_ip;
+            }
+        }
+        
+        // 函数：通过WebSocket发送消息命令
+        function sendWebSocketMessage(command) {
+            if (!isConnected || !ws) {
+                console.log('WebSocket未连接');
+                return false;
+            }
+            try {
+                ws.send(command);
+                return true;
+            } catch (e) {
+                console.error('发送消息失败:', e);
+                return false;
+            }
+        }
+
+        // 初始化要发送的命令
+        let currentState = {
+            command: '{"cmd_type":"control","cmd_detail":"stop|stop|-2|-2|-2|-2|"}'
+        };
+        // let currentCommandDisplay = document.getElementById('current-command');
+
+        // 函数：将命令发送给服务器
+        function handleAction(command) {
+            str_command = JSON.stringify(command);
+            if (currentState.command !== str_command) {
+                currentState.command = str_command;
+                
+                // 更新显示的指令
+                // currentCommandDisplay.textContent = JSON.stringify(command)                
+                // 通过WebSocket发送命令
+                
+                if (!sendWebSocketMessage(str_command)) {
+                    console.log('WebSocket发送失败');
+                }
+            }
+        }
+
+        // 初始化陀螺仪相关变量
+        let gyroData = {
+            beta: 0,   // X轴前后倾斜 (-180到180度)
+            gamma: 0   // Y轴左右倾斜 (-90到90度)
+        };
+        let isGyroActive = false;
+        let gyroHandler = null; // 保存陀螺仪事件处理器
+        const gyroPointer = document.getElementById('gyro-pointer');
+        const xValue = document.getElementById('x-value');
+        const yValue = document.getElementById('y-value');
+        const gyroPermissionBtn = document.getElementById('gyro-permission-btn');
+        const gyroCancelPermissionBtn = document.getElementById('gyro-cancel-permission-btn');
+
+        // 函数：初始化陀螺仪
+        function initGyro() {
+            if (window.DeviceOrientationEvent) {
+                // 请求权限（iOS 13+ 需要）
+                if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    DeviceOrientationEvent.requestPermission()
+                        .then(permissionState => {
+                            if (permissionState === 'granted') {
+                                startGyro();
+                            } else {
+                                setGyroStatus(false, '陀螺仪权限被拒绝');
+                            }
+                        })
+                        .catch(console.error);
+                } else {
+                    // 非iOS设备
+                    startGyro();
+                }
+            } else {
+                setGyroStatus(false, '设备不支持陀螺仪');
+            }
+        }
+
+        // 函数：启动陀螺仪监听
+        function startGyro() {
+            gyroHandler = handleOrientation;
+            window.addEventListener('deviceorientation', gyroHandler);
+            gyroPermissionBtn.style.display = 'none'; // 隐藏启用按钮
+            gyroCancelPermissionBtn.style.display = 'block'; // 显示关闭按钮
+        }
+        // 函数：停止陀螺仪监听
+        function stopGyro() {
+            if (gyroHandler) {
+                window.removeEventListener('deviceorientation', gyroHandler);
+                gyroHandler = null;
+            }
+            gyroPermissionBtn.style.display = 'block'; // 显示启用按钮
+            gyroCancelPermissionBtn.style.display = 'none'; // 隐藏关闭按钮
+            
+            // 重置指针位置到中心
+            gyroPointer.style.transform = 'translate(-50%, -50%)';
+            gyroPointer.style.background = '#ff4d4d';
+            gyroPointer.style.boxShadow = '0 0 15px #ff4d4d';
+            
+            // 重置轴值显示
+            xValue.textContent = '0.00';
+            yValue.textContent = '0.00';
+            
+            // 发送停止指令
+            //handleAction({"cmd_type":"control","cmd_detail":"stop|stop|-2|-2|-2|-2|"});
+        }
+        // 函数：更新陀螺仪可视化
+        function updateGyroVisualization() {
+            const maxTilt = 90; // 最大倾斜角度
+            // 计算指针位置（基于beta和gamma）
+            // 将beta(-180~180)和gamma(-90~90)映射到-100%到100%范围
+            let xPercent = (gyroData.gamma / maxTilt) * 100;  // 左右倾斜影响X轴
+            let yPercent = (gyroData.beta / maxTilt) * 100;   // 前后倾斜影响Y轴
+            // 限制在圆圈范围内
+            const distance = Math.sqrt(xPercent*xPercent + yPercent*yPercent);
+            if (distance > 100) {
+                xPercent = (xPercent / distance) * 100;
+                yPercent = (yPercent / distance) * 100;
+            }
+            // 更新指针位置 (使用transform translate)
+            // 修改: 使用translate的百分比相对于容器大小
+            gyroPointer.style.transform = `translate(calc(-50% + ${xPercent}%),calc(-50% + ${yPercent}%))`;
+            //根据位置改变颜色
+            if (distance > 70) {
+                gyroPointer.style.background = '#ff0000';
+                gyroPointer.style.boxShadow = '0 0 20px #ff0000';
+            } else if (distance > 40) {
+                gyroPointer.style.background = '#ffaa00';
+                gyroPointer.style.boxShadow = '0 0 15px #ffaa00';
+            } else {
+                gyroPointer.style.background = '#4CAF50';
+                gyroPointer.style.boxShadow = '0 0 10px #4CAF50';
+            }
+        }
+        // 函数：格式化处理陀螺仪数据
+        function handleOrientation(event) {
+            gyroData.beta = event.beta || 0;    // X轴前后倾斜
+            gyroData.gamma = event.gamma || 0;  // Y轴左右倾斜
+            // 更新显示
+            xValue.textContent = gyroData.beta.toFixed(2);
+            yValue.textContent = gyroData.gamma.toFixed(2);
+            // 更新可视化指针
+            updateGyroVisualization();
+            // 根据陀螺仪数据生成控制指令
+            generateCommandFromGyro();
+        }
+        // 函数：根据陀螺仪数据生成控制指令并发送指令
+        function generateCommandFromGyro() {
+            X_axis = gyroData.beta;
+            Y_axis = gyroData.gamma;
+            if (X_axis > 20) {
+                channle_1 = "bottom"
+            } else if (X_axis < -20) {
+                channle_1 = "top"
+            }  else {
+                channle_1 = "stop"
+            }
+            if (Y_axis > 20) {
+                channle_2 = "right"
+            } else if (Y_axis < -20) {
+                channle_2 = "left"
+            } else {
+                channle_2 = "stop"
+            }
+            gyro_generated_command = {"cmd_type":"control","cmd_detail":channle_1 + "|" + channle_2 + "|-2|-2|-2|-2|"}
+            handleAction(gyro_generated_command)
+        }
+        // 函数：输入wifi信息并连接
+        function connectwifi() {
+            var ssid = document.getElementById('ssid').value;
+            var password = document.getElementById('password').value;
+            wifi_connect_command = {"cmd_type":"wifi","ssid":ssid,"password":password}
+            handleAction(wifi_connect_command)
+        }
+        // 函数：刷新wifi信息
+        function wifistatus() {
+            wifistatus_conmand = {"cmd_type":"wifistatus"}
+            handleAction(wifistatus_conmand)
+            // 将返回的信息显示在页面上
+        }
+        // 绑定点击事件
+        document.getElementById('disconnected-status').addEventListener('click', connectWebSocket);
+        document.getElementById('connected-status').addEventListener('click', connectWebSocket);
+        gyroPermissionBtn.addEventListener('click', initGyro);
+        gyroCancelPermissionBtn.addEventListener('click', stopGyro);
+
+    </script>
+</body>
+</html>
